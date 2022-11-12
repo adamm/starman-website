@@ -77,6 +77,7 @@ function sendFromLocalCache (filename, gsAttrs, req, res) {
 
         res.set('Cache-Control', 'max-age=0, private, must-revalidate');
         res.set('Content-Type', attrs.contentType);
+        res.set('Content-Length', attrs.size);
         res.set('etag', attrs.etag);
 
         let stream = fs.createReadStream(`cache/${filename}`);
@@ -132,8 +133,9 @@ async function sendFromGoogleStorage (filename, req, res) {
                 cache.end   = () => {};
             }
 
-            res.set('Content-Type', attrs.contentType);
             res.set('Cache-Control', 'max-age=0, private, must-revalidate');
+            res.set('Content-Type', attrs.contentType);
+            res.set('Content-Length', attrs.size);
             res.set('etag', attrs.etag);
 
             stream.on('data', content => {

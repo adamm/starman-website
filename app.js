@@ -20,6 +20,12 @@ process.on('SIGINT', function (){
     process.exit(0);
 });
 
+app.use((req, res, next) => {
+    if (req.headers['x-mac-address'])
+        console.log('MAC address: ' + req.headers['x-mac-address']);
+    next();
+});
+
 app.use('/', routes);
 
 // Listen to the App Engine-specified port, or 8080 otherwise

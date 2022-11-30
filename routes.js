@@ -3,8 +3,8 @@ const router = express.Router();
 
 var controller = require('./controllers.js');
 
-router.get('/stable', controller.get_stable);
-router.get('/testing', controller.get_testing);
-router.get('/unstable', controller.get_unstable);
+router.get('/firmware/stable.bin', controller.get_stable);
+router.get('/firmware/testing.bin', controller.get_testing);
+router.get('/firmware/unstable.bin', controller.get_unstable);
 
 module.exports = router;

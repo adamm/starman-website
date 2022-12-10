@@ -28,6 +28,33 @@ exports.testAuth = async () => {
 }
 
 
+exports.getFile = function (filename) {
+    // Leverage the same sendFile(), sendFromLocalCache(), and
+    // sendFromGoogleStorage() routines but instead of delivering the data to
+    // the express response object, deliver by fulfilling a promise
+    return new Promise((resolve, reject) => {
+        // FIXME: Get the proper buffer size
+        let fileData = Buffer.alloc(1025520);
+        let fileOffset = 0;
+        let fakeReq = {};
+        let fakeRes = {
+            set: () => {},
+            send: (data) => { },
+            sendStatus: () => { },
+            write: (data) => {
+                data.copy(fileData, fileOffset);
+                fileOffset += data.length;
+            },
+            end: () => {
+                resolve(fileData);
+            },
+        };
+
+        exports.sendFile(filename, fakeReq, fakeRes);
+    });
+}
+
+
 exports.sendFile = function (filename, req, res) {
     storage.bucket(bucketName).file(filename).get().then(metadata => {
         let gsAttrs = metadata[1];
@@ -83,7 +110,7 @@ function sendFromLocalCache (filename, gsAttrs, req, res) {
         let stream = fs.createReadStream(`cache/${filename}`);
         stream.on('data', content => {
             res.write(content);
-            content.copy(data, 0, offset);
+            content.copy(data, offset);
             offset += content.length;
         });
         stream.on('end', () => {
@@ -139,13 +166,13 @@ async function sendFromGoogleStorage (filename, req, res) {
             res.set('etag', attrs.etag);
 
             stream.on('data', content => {
-                content.copy(data, 0, offset);
+                content.copy(data, offset);
                 res.write(content);
                 cache.write(content);
                 offset += content.length;
             });
             stream.on('end', () => {
-                res.send();
+                res.end();
                 resolve(data);
             });
             stream.on('error', (err) => {
